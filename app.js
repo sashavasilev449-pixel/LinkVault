@@ -20,9 +20,50 @@ function toast(message) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
 }
+let cloudSaveQueue = Promise.resolve();
 function persist() {
-  if (!Storage.saveLinks(state.links)) toast("Не удалось сохранить данные. Возможно, хранилище переполнено.");
+  if (!Storage.saveLinks(state.links)) toast("Не удалось сохранить локальную копию.");
+  const client = window.LVAuth?.client;
+  const user = window.LVAuth?.getUser();
+  if (!client || !user) return;
+  cloudSaveQueue = cloudSaveQueue.then(async () => {
+    const rows = state.links.map(link => ({ id: link.id, user_id: user.id, title: link.title, url: link.url, description: link.description || "", category: link.category || "Другое", favorite: Boolean(link.favorite), created_at: link.createdAt }));
+    if (rows.length) {
+      const { error } = await client.from("linkvault_links").upsert(rows, { onConflict: "id" });
+      if (error) throw error;
+    }
+    const { data: existing, error: readError } = await client.from("linkvault_links").select("id").eq("user_id", user.id);
+    if (readError) throw readError;
+    const keep = new Set(state.links.map(link => link.id));
+    const remove = (existing || []).filter(row => !keep.has(row.id)).map(row => row.id);
+    if (remove.length) {
+      const { error } = await client.from("linkvault_links").delete().in("id", remove);
+      if (error) throw error;
+    }
+    const { error: categoryError } = await client.from("user_categories").upsert({ user_id: user.id, categories: state.categories }, { onConflict: "user_id" });
+    if (categoryError) throw categoryError;
+  }).catch(error => { console.error("Cloud sync error:", error); toast("Не удалось синхронизировать данные. Проверь подключение."); });
 }
+window.loadLibraryFromCloud = async function () {
+  const client = window.LVAuth?.client;
+  const user = window.LVAuth?.getUser();
+  if (!client || !user) return;
+  const [{ data: rows, error }, { data: categoryRow, error: categoryError }] = await Promise.all([
+    client.from("linkvault_links").select("id,title,url,description,category,favorite,created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
+    client.from("user_categories").select("categories").eq("user_id", user.id).maybeSingle()
+  ]);
+  if (error || categoryError) { console.error(error || categoryError); toast("Не удалось загрузить облачную библиотеку."); return; }
+  const localLinks = Storage.getLinks();
+  if ((!rows || rows.length === 0) && localLinks.length && confirm(`Найдено ${localLinks.length} ссылок в этом браузере. Перенести их в облако этого аккаунта?`)) {
+    state.links = localLinks;
+    persist();
+  } else {
+    state.links = (rows || []).map(row => ({ id: row.id, title: row.title, url: row.url, description: row.description, category: row.category, favorite: row.favorite, createdAt: row.created_at }));
+  }
+  state.categories = categoryRow?.categories?.length ? categoryRow.categories : [...DEFAULT_CATEGORIES];
+  Storage.saveLinks(state.links); Storage.saveCategories(state.categories);
+  render();
+};
 function openModal(id) {
   $(id).hidden = false;
   document.body.style.overflow = "hidden";
@@ -169,7 +210,7 @@ function importLibrary(file) {
       if (!data || !Array.isArray(data.links)) throw new Error("Неверный формат файла");
       const imported = data.links.map(item => {
         const url = Links.normalizeUrl(item.url);
-        return { id: String(item.id || Date.now() + Math.random()), title: String(item.title || Links.domain(url)).slice(0,80), url, description: String(item.description || "").slice(0,220), category: state.categories.includes(item.category) ? item.category : "Другое", favorite: Boolean(item.favorite), createdAt: item.createdAt || new Date().toISOString() };
+        return { id: (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`), title: String(item.title || Links.domain(url)).slice(0,80), url, description: String(item.description || "").slice(0,220), category: state.categories.includes(item.category) ? item.category : "Другое", favorite: Boolean(item.favorite), createdAt: item.createdAt || new Date().toISOString() };
       });
       if (!confirm(`Импортировать ${imported.length} ссылок? Текущая библиотека будет заменена.`)) return;
       state.links = imported;
@@ -234,7 +275,7 @@ $("categoryForm").addEventListener("submit", event => {
   if (!name) return;
   if (state.categories.some(item => item.toLowerCase() === name.toLowerCase())) { toast("Такая категория уже существует"); return; }
   if (name.length > 24) { toast("Максимум 24 символа"); return; }
-  state.categories.push(name); Storage.saveCategories(state.categories); $("newCategory").value = ""; render(); toast("Категория создана");
+  state.categories.push(name); Storage.saveCategories(state.categories); persist(); $("newCategory").value = ""; render(); toast("Категория создана");
 });
 $("categoryList").addEventListener("click", event => {
   const button = event.target.closest("[data-delete-category]");
