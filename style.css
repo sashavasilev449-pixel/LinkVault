@@ -9,3 +9,10 @@
 /* Founder credit */
 .ceo-credit{position:fixed;right:18px;bottom:14px;z-index:150;color:#fff;font-size:10px;font-weight:500;letter-spacing:.03em;text-shadow:0 0 4px rgba(255,255,255,.15);pointer-events:none;white-space:nowrap}
 @media(max-width:600px){.ceo-credit{right:12px;bottom:10px;font-size:9px}}
+
+/* Legal footer links: separate, readable items */
+.footer{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.legal-links{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.legal-links a{display:inline-block;color:#aaa4c4;text-decoration:none;font-size:11px;line-height:1.6;white-space:nowrap}
+.legal-links a:hover{color:#fff;text-decoration:underline}
+@media(max-width:600px){.legal-links{gap:8px 14px}.legal-links a{font-size:10px}}
