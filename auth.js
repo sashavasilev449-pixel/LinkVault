@@ -128,7 +128,7 @@
       });
       if (error) return alert('Не удалось начать настройку 2FA: ' + error.message);
       enrolledFactorId = data.id;
-      $('mfaQr').innerHTML = data.totp.qr_code;
+      $('mfaQr').src = data.totp.qr_code;
       $('mfaSecret').textContent = data.totp.secret;
       $('mfaSetupArea').hidden = false;
     });
