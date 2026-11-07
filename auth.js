@@ -104,8 +104,29 @@
     $('signOutBtn').addEventListener('click', async () => { await client.auth.signOut(); currentUser = null; localStorage.removeItem('linkvault_links_v1'); localStorage.removeItem('linkvault_categories_v1'); $('accountModal').hidden = true; showAuth(true); setMode('login'); });
     document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { $(b.dataset.close).hidden = true; }));
     $('mfaSetupBtn').addEventListener('click', async () => {
-      const { data, error } = await client.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'LinkVault Authenticator' });
-      if (error) return alert(error.message);
+      // Удаляем незавершённые TOTP-факторы с таким именем, оставшиеся после
+      // прерванной настройки. Проверенный фактор повторно не создаём.
+      const { data: listed, error: listError } = await client.auth.mfa.listFactors();
+      if (listError) return alert('Не удалось проверить MFA-факторы: ' + listError.message);
+      const verified = (listed?.totp || []).find(f => f.status === 'verified');
+      if (verified) {
+        $('mfaSetupBtn').hidden = true;
+        $('mfaDisableBtn').hidden = false;
+        return alert('Двухфакторная защита уже подключена к аккаунту.');
+      }
+      const stale = (listed?.all || listed?.totp || []).filter(f =>
+        f.factor_type === 'totp' && f.status !== 'verified' &&
+        f.friendly_name === 'LinkVault Authenticator'
+      );
+      for (const factor of stale) {
+        const { error: removeError } = await client.auth.mfa.unenroll({ factorId: factor.id });
+        if (removeError) return alert('Не удалось удалить незавершённую настройку MFA: ' + removeError.message);
+      }
+      const { data, error } = await client.auth.mfa.enroll({
+        factorType: 'totp',
+        friendlyName: 'LinkVault Authenticator'
+      });
+      if (error) return alert('Не удалось начать настройку 2FA: ' + error.message);
       enrolledFactorId = data.id;
       $('mfaQr').innerHTML = data.totp.qr_code;
       $('mfaSecret').textContent = data.totp.secret;
