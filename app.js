@@ -296,3 +296,6 @@ document.addEventListener("click", event => {
 });
 $("dateLabel").textContent = new Intl.DateTimeFormat("ru-RU", { weekday:"long", day:"numeric", month:"long" }).format(new Date()).toUpperCase();
 render();
+
+// Переключение цветовой темы с сохранением выбора
+(()=>{const b=document.getElementById('themeToggle');if(!b)return;const set=t=>{document.body.dataset.theme=t==='teal'?'teal':'purple';b.textContent='Тема: '+(t==='teal'?'бирюзовая':'фиолетовая');localStorage.setItem('linkvault_theme',t)};set(localStorage.getItem('linkvault_theme')||'purple');b.addEventListener('click',()=>set(document.body.dataset.theme==='teal'?'purple':'teal'));})();
