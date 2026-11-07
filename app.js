@@ -298,4 +298,4 @@ $("dateLabel").textContent = new Intl.DateTimeFormat("ru-RU", { weekday:"long", 
 render();
 
 // Выбор цветовой темы с сохранением
-(()=>{const b=document.getElementById('themeToggle');if(!b)return;const valid=['purple','teal','tealwhite','orange'];const set=t=>{const theme=valid.includes(t)?t:'purple';document.body.dataset.theme=theme;b.value=theme;localStorage.setItem('linkvault_theme',theme)};set(localStorage.getItem('linkvault_theme')||'purple');b.addEventListener('change',()=>set(b.value));})();
+(()=>{const b=document.getElementById('themeToggle');if(!b)return;const valid=['purple','teal','orange','red'];const set=t=>{const theme=valid.includes(t)?t:'purple';document.body.dataset.theme=theme;b.value=theme;localStorage.setItem('linkvault_theme',theme)};set(localStorage.getItem('linkvault_theme')||'purple');b.addEventListener('change',()=>set(b.value));})();
