@@ -10,7 +10,7 @@
   let enrolledFactorId = null;
   let challengeId = null;
   const authMessage = (message, error=false) => { $('authMessage').textContent = message; $('authMessage').classList.toggle('error', error); };
-  const showAuth = (show) => { $('authScreen').hidden = !show; document.querySelector('.app-shell').style.display = show ? 'none' : ''; };
+  const showAuth = (show) => { $('authScreen').hidden = !show; if (show) { $('publicLanding').hidden = true; $('appShell').style.display = 'none'; } };
   const setMode = next => {
     mode = next;
     const signup = mode === 'signup';
@@ -56,14 +56,14 @@
       }
     }
     $('accountButton').textContent = (user.email || 'Аккаунт').slice(0, 18);
-    showAuth(false);
+    showAuth(false); $('publicLanding').hidden = true; $('appShell').style.display = '';
     $('accountEmail').textContent = user.email || '';
     await refreshAdminVisibility();
     if (window.loadLibraryFromCloud) await window.loadLibraryFromCloud();
   }
   async function init() {
     if (!configured) {
-      showAuth(true);
+      $('publicLanding').hidden = false; $('appShell').style.display = 'none'; showAuth(false);
       $('authTitle').textContent = 'Подключи Supabase';
       $('authSubtitle').textContent = 'Заполни URL и publishable/anon key в файле supabase-config.js, затем обнови страницу.';
       $('authForm').hidden = true; $('authModeBtn').hidden = true; $('forgotPasswordBtn').hidden = true;
@@ -100,7 +100,11 @@
       const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
       authMessage(error ? error.message : 'Если для этого адреса есть аккаунт, письмо для сброса пароля отправлено.');
     });
-    $('accountButton').addEventListener('click', showAccount);
+    $('accountButton').addEventListener('click', () => { if (currentUser) showAccount(); else { $('publicLanding').hidden = true; showAuth(true); setMode('login'); } });
+    const enterGuest = () => { $('publicLanding').hidden = true; $('authScreen').hidden = true; $('appShell').style.display = ''; document.body.style.overflow = ''; };
+    $('tryWithoutAccount').addEventListener('click', enterGuest);
+    $('landingLogin').addEventListener('click', () => { $('publicLanding').hidden = true; showAuth(true); setMode('login'); });
+    $('landingSignup').addEventListener('click', () => { $('publicLanding').hidden = true; showAuth(true); setMode('signup'); });
     $('signOutBtn').addEventListener('click', async () => { await client.auth.signOut(); currentUser = null; localStorage.removeItem('linkvault_links_v1'); localStorage.removeItem('linkvault_categories_v1'); $('accountModal').hidden = true; showAuth(true); setMode('login'); });
     document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { $(b.dataset.close).hidden = true; }));
     $('mfaSetupBtn').addEventListener('click', async () => {
@@ -175,7 +179,7 @@
       if (session?.user) { currentUser = session.user; $('accountButton').textContent = (session.user.email || 'Аккаунт').slice(0, 18); }
     });
     const { data: { session } } = await client.auth.getSession();
-    if (session?.user) await finishLogin(session.user); else showAuth(true);
+    if (session?.user) await finishLogin(session.user); else { showAuth(false); $('publicLanding').hidden = false; $('appShell').style.display = 'none'; }
   }
   window.LVAuth = { client, getUser: () => currentUser, configured, init };
   document.addEventListener('DOMContentLoaded', init);
