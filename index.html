@@ -13,7 +13,18 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-  <div class="app-shell">
+  <section class="public-landing" id="publicLanding">
+    <header class="landing-nav"><a class="brand" href="#"><span class="brand-mark"><i data-lucide="shield-check"></i></span><span>Link<span class="brand-light">Vault</span></span></a><button class="landing-login" id="landingLogin">Войти</button></header>
+    <div class="landing-hero"><div class="landing-badge"><span></span> ЛИЧНАЯ БИБЛИОТЕКА ССЫЛОК</div>
+      <h1>Всё важное.<br><em>В одном месте.</em></h1>
+      <p class="landing-lead">Сохраняй полезные сайты, организуй их по категориям и находи нужное за секунды. Просто, удобно и бесплатно.</p>
+      <div class="landing-actions"><button class="landing-primary" id="tryWithoutAccount">Попробовать без регистрации <i data-lucide="arrow-right"></i></button><button class="landing-secondary" id="landingSignup">Создать аккаунт</button></div>
+      <div class="landing-trust"><span><i data-lucide="check"></i> Бесплатно</span><span><i data-lucide="check"></i> Без регистрации для знакомства</span><span><i data-lucide="check"></i> Твои ссылки — твои</span></div>
+    </div>
+    <div class="landing-features"><article><i data-lucide="bookmark"></i><h3>Сохраняй</h3><p>Добавляй сайты, которые не хочешь потерять.</p></article><article><i data-lucide="folders"></i><h3>Организуй</h3><p>Разделяй ссылки по категориям и избранному.</p></article><article><i data-lucide="search"></i><h3>Находи</h3><p>Поиск поможет быстро открыть нужное.</p></article></div>
+    <div class="landing-bottom"><span>LINKVAULT · ТВОЯ БИБЛИОТЕКА, ТВОИ ПРАВИЛА</span><a href="./privacy.html">Конфиденциальность</a><a href="./contact.html">Контакты</a></div>
+  </section>
+  <div class="app-shell" id="appShell" style="display:none">
     <aside class="sidebar" id="sidebar">
       <a class="brand" href="#" aria-label="LinkVault — главная">
         <span class="brand-mark"><i data-lucide="shield-check"></i></span>
