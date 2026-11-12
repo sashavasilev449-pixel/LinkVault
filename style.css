@@ -103,3 +103,9 @@ body[data-theme="red"] .legal-links a{color:#c99a9a}
 .landing-about-note{margin-top:22px;display:flex;align-items:center;justify-content:center;gap:9px;color:#d4d4d4;font-size:11px}
 .about-dot{width:6px;height:6px;background:#ef4444;border-radius:50%;box-shadow:0 0 10px #ef4444}
 @media(max-width:600px){.landing-about{padding:25px 18px;margin-bottom:42px}.landing-about h2{letter-spacing:-.7px}}
+
+/* Final sweep: links, badges and secondary accent elements in red */
+a{--link-accent:#ef4444}
+.link-card a,.link-card .open-link,.link-card .card-open,.link-card .open-link-button,.link-card .link-open{color:#ef4444!important}
+.link-card a:hover,.link-card .open-link:hover,.link-card .card-open:hover,.link-card .open-link-button:hover,.link-card .link-open:hover{color:#fca5a5!important}
+.category-badge,.category-pill,.link-category,.tag,.category-tag{background:rgba(220,38,38,.14)!important;color:#fca5a5!important;border-color:rgba(220,38,38,.25)!important}
